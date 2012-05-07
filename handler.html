@@ -1,0 +1,36 @@
+<html>
+<head>
+    <style type="text/css">@import "jquery/jquery.svg.css";</style>
+    <style type="text/css">@import "jquery/jquery-ui.css";</style>
+    <style>
+        rect {
+            fill: darkgray;
+            stroke: darkgray;
+            stroke-width: 0;
+            margin: 0;
+            padding: 0;
+        }
+        rect:hover {
+            fill: white;
+        }
+        .selected {
+            fill: yellow;
+            background: green;
+        }
+
+    </style>
+    <script lang="javascript" src="jquery/jquery.js"></script>
+    <script lang="javascript" src="jquery/jquery-ui.js"></script>
+    <script lang="javascript" src="jquery/jquery.svg.pack.js"></script>
+    <script lang="javascript" src="jquery/jquery.svgdom.pack.js"></script>
+    
+    <script lang="javascript" src="js-properties/js-properties.js"></script>
+    <script lang="javascript" src="handler.js"></script>
+
+</head>
+
+<body>
+<p id="status">status</p>
+<div id="workspace" width="100%" heigth="100%" style="background: gray;"></div>
+</body>
+</html>
