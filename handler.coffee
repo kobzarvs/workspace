@@ -21,8 +21,10 @@ class WorkSpace extends Properties
         @modes = { 'R': 'Activity', 'C': 'Connetion' }
 
         # привязаем SVG к тэгу DIV с ID: _svg_div
-        $(_svg_div).svg (_svg) -> @svg = _svg
+        $('#workspace').svg (svg_context) -> @svg = svg_context
+        
         console.log "SVG initialized"
+
         @space = []
         console.log 'WorkSpace initialized'
 
@@ -30,17 +32,24 @@ class WorkSpace extends Properties
             draw:
                 flag: {}
                 mode:
+                    before_get: =>
+                        console.log 'BEFORE GET'
                     before_set: (val) =>
                         @old_mode = @draw._prop.mode
 
                     after_set: (val) =>
                         if @old_mode == val
                             console.log 'mode is not changed'
-#                        else
-                        fade $('#status'), 100, =>
-                            $('#status').html 'mode: ' + @modes[ @draw.mode ]
-#                            console.log 'mode is changed'
-        @draw.mode = @draw.mode
+                        else
+                            console.log 'mode is changed'
+                            @draw_mode_status()
+
+        @draw_mode_status()
+         
+    draw_mode_status: ->
+        console.log 'mode is changed...'
+        fade $('#status'), 100, =>
+            $('#status').html 'mode: ' + @modes[ @draw.mode ]
 
     clear: ->
         @space = []
@@ -54,7 +63,6 @@ ws = null
 $(document).ready ->
     ws = new WorkSpace '#workspace'
 
-    console.log "#{ws.to_JSON()}"
     #
     #   выбор режима
 
