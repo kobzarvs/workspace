@@ -17,18 +17,22 @@ class WorkSpace extends Properties
 
     constructor: (_svg_div) ->
         @name = 'WorkSpace'
-
         @modes = { 'R': 'Activity', 'C': 'Connetion' }
 
         # привязаем SVG к тэгу DIV с ID: _svg_div
-        $('#workspace').svg (svg_context) -> @svg = svg_context
+        $("#workspace").svg (svg_context) -> @svg = svg_context
         
-        console.log "SVG initialized"
-
-        @space = []
-        console.log 'WorkSpace initialized'
+        @store = new Persist.Store 'mydb'
+        @store.set 'test', 'test value'
+        console.log @store.get('test')
 
         @cookies
+            session_id: {}
+
+        @localStorage 'db',
+            space:
+                before_get: =>
+                    console.log 'BEFORE GET SPACE'
             draw:
                 flag: {}
                 mode:
@@ -36,6 +40,7 @@ class WorkSpace extends Properties
                         console.log 'BEFORE GET'
                     before_set: (val) =>
                         @old_mode = @draw._prop.mode
+                        true
 
                     after_set: (val) =>
                         if @old_mode == val
@@ -44,15 +49,18 @@ class WorkSpace extends Properties
                             console.log 'mode is changed'
                             @draw_mode_status()
 
-        @draw_mode_status()
+        if @draw.mode? then @draw_mode_status() else @draw.mode = 'C'
+
+#        @space = []
+#        for i in [1..1000]
+#            @space.push {rect: [i,i,i,i]}
          
     draw_mode_status: ->
-        console.log 'mode is changed...'
         fade $('#status'), 100, =>
             $('#status').html 'mode: ' + @modes[ @draw.mode ]
 
     clear: ->
-        @space = []
+        @draw.space = []
 
 
 
