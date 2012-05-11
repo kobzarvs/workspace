@@ -20,24 +20,44 @@ class WorkSpace extends Properties
         @modes = { 'R': 'Activity', 'C': 'Connetion' }
 
         # привязаем SVG к тэгу DIV с ID: _svg_div
-        $("#workspace").svg (svg_context) -> @svg = svg_context
+        $("#workspace").svg (svg_context) => @svg = svg_context
+        @svg.rect 0,0,'100%','100%', {style:'fill:gray'}
         
-        @store = new Persist.Store 'mydb'
-        @store.set 'test', 'test value'
-        console.log @store.get('test')
-
         @cookies
             session_id: {}
 
         @localStorage 'db',
-            space:
+            points:
                 before_get: =>
-                    console.log 'BEFORE GET SPACE'
+                after_set: (val,old) =>
+                    console.log val
+                    switch @draw.mode
+                        when 'R'
+                            if @points.length >= 2
+                                push @, 'space', {rect: [@points[0].x, @points[0].y, @points[1].x, @points[1].y] }
+                                $('#tmp').remove()
+                                @tmp_space = null
+                                @points = []
+                            else if @points.length == 1
+                                @tmp_space = [@points[0].x, @points[0].y, @points[0].x, @points[0].y]
+
+            tmp_space:
+                after_set: (r,old) =>
+#                    if val[val.length-1]?.rect?
+                    if r?
+                        $('#tmp').remove()
+                        @svg.rect r[0], r[1], r[2]-r[0], r[3]-r[1],
+                            {id: 'tmp', style:'fill:none; stroke-width:1; stroke:red'}
+
+            space:
+                after_set: (val,old) =>
+                    if val[val.length-1]?.rect?
+                        r = val[val.length-1].rect
+                        @svg.rect r[0], r[1], r[2]-r[0], r[3]-r[1]
+
             draw:
                 flag: {}
                 mode:
-                    before_get: =>
-                        console.log 'BEFORE GET'
                     before_set: (val) =>
                         @old_mode = @draw._prop.mode
                         true
@@ -48,12 +68,16 @@ class WorkSpace extends Properties
                         else
                             console.log 'mode is changed'
                             @draw_mode_status()
+                            @points = []
 
         if @draw.mode? then @draw_mode_status() else @draw.mode = 'C'
 
-#        @space = []
-#        for i in [1..1000]
-#            @space.push {rect: [i,i,i,i]}
+        @points = []
+        @tmp_space=null
+
+        @space = [] #unless @space?
+#        for i in [1..10000]
+#            @space.push {rect: [i,i]}
          
     draw_mode_status: ->
         fade $('#status'), 100, =>
@@ -71,45 +95,36 @@ ws = null
 $(document).ready ->
     ws = new WorkSpace '#workspace'
 
-    #
+    #ws.svg.rect 0,0,100,100
     #   выбор режима
-
+    #
     $(window).keydown (e) ->
         key = String.fromCharCode(e.keyCode)
-        console.log "Down: #{e.keyCode} = #{key}"
         switch key
-            when 'R'
-                ws.draw.mode = 'R'
-            when 'C'
-                ws.draw.mode = 'C'
-
-        console.log "Mode: #{ws.draw.mode}"
-#        set_mode ws.draw.modes[ ws.draw.mode ]
-#        ws.change_draw_mode()
+            when 'R', 'C'
+                ws.draw.mode = key
 
 
     $('#workspace').mousedown (e) ->
-#       console.log "MouseDown: #{e.clientX}:#{e.clientY}"
+        console.log "MouseDown: #{e.clientX}:#{e.clientY}"
         switch ws.draw.mode
             when 'R'
-                ;
-#                console.log "MouseDown: #{e.clientX}:#{e.clientY}"
+                push ws, 'points', {x: (e.clientX - workspace.offsetLeft), y: (e.clientY - workspace.offsetTop) }
 
     $('#workspace').mouseup (e) ->
 #        console.log "MouseUp: #{e.pageX}:#{e.pageY} Object: #{e.target.id}"
         switch ws.draw.mode
             when 'R'
                 ;
-#                console.log "MouseUp: #{e.pageX}:#{e.pageY} Object: #{e.target.id}"
 
 
     $('#workspace').mousemove (e) ->
-#        return if last_object == e.target
-#        return unless draw_flag
-#        console.log "MouseMove: #{e.clientX}:#{e.clientY} Object: #{e.target.id}"
-
         switch ws.draw.mode
             when 'R'
+                tmp = ws.tmp_space
+                if tmp
+                    ws.tmp_space = [tmp[0], tmp[1], e.pageX - workspace.offsetLeft, e.pageY - workspace.offsetTop]
+#                    ws.tmp_space = [tmp[0], tmp[1], e.pageX, e.pageY]
                 ;
 #                console.log "MouseMove: #{e.clientX}:#{e.clientY} Object: #{e.target.id}"
 
